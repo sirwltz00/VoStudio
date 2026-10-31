@@ -1,0 +1,26 @@
+# CMake/build output
+/build/
+/build-*/
+/cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+
+# IDE/editor files
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Platform app bundles and generated installer output
+*.app/
+*.dSYM/
+*.apk
+*.aab
+*.ipa
+
+# Render output and temporary audio
+/dist/
+*.render.wav
