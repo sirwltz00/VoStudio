@@ -1,0 +1,39 @@
+name: iOS Simulator Engine Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'VoStudio.Engine/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/ios-engine.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator-arm64:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure iOS Simulator engine
+        run: >-
+          cmake -S . -B build-ios-simulator
+          -DCMAKE_SYSTEM_NAME=iOS
+          -DCMAKE_OSX_SYSROOT=iphonesimulator
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DVOSTUDIO_BUILD_TESTS=OFF
+          -DVOSTUDIO_BUILD_TOOLS=OFF
+          -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build iOS Simulator static library
+        run: cmake --build build-ios-simulator --config Release --parallel
+
+      - name: Upload engine library
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoStudio-Engine-iOS-Simulator-arm64
+          path: build-ios-simulator/VoStudio.Engine/
+          if-no-files-found: error
