@@ -86,8 +86,17 @@ A Windows `.dll` is not a universal plugin binary. A stable C ABI can be shared,
 
 ## Project status
 
-Engine Alpha. Windows/Linux/macOS CI builds and tests the shared library. Android and iOS workflows cross-compile the shared engine library; they do not yet package complete mobile applications. No voicebank importer, native song editor, or production phonemizer is implemented yet.
+Engine Alpha. The shared DSP library builds and its tests pass in the local CMake build. Cross-platform app workflows are defined for Android, Windows, Linux, macOS, and iOS. Qt app builds still need their first GitHub Actions run before platform artifacts can be considered verified. No voicebank importer, piano roll, or production phonemizer is implemented yet.
 
 ## GitHub upload
 
 The connected GitHub integration currently rejects repository content writes. See [`docs/GITHUB_UPLOAD.md`](docs/GITHUB_UPLOAD.md) for commands to push this package to `sirwltz00/VoStudio` using your normal GitHub credentials.
+
+
+## Cross-platform audio editor alpha
+
+The first Qt Quick application is in `VoStudio.App/`. It provides a WAV picker, pitch/duration/gain/formant sliders, WSOLA/phase-vocoder selection, asynchronous rendering, preview playback, and WAV export. The UI is shared across Windows, Linux, macOS, Android, and iOS; platform-specific packaging is maintained in the five `VoStudio.*` directories and GitHub Actions workflows.
+
+The Android workflow now uses `android-actions/setup-android@v4` (not v3), JDK 17, Qt 6.8.3 Android arm64, Android Platform 35, Build Tools 35.0.1, and NDK 26.1.10909125. It builds an APK artifact. Desktop workflows deploy the Qt runtime and QML imports. iOS CI builds an unsigned device app bundle that still needs Apple signing/provisioning before physical installation.
+
+See [`docs/APP_BUILDING.md`](docs/APP_BUILDING.md) for build instructions and alpha limitations.
