@@ -10,8 +10,11 @@ struct RenderParameters final {
     int source_root_midi_note{60};
     int target_midi_note{60};
     double source_start_seconds{0.0};
-    double output_duration_seconds{0.0}; // Zero means use the remaining source duration.
+    double output_duration_seconds{0.0};
     float gain{1.0F};
+
+    double formant_preservation{0.65};
+
     const PitchCurve* pitch_curve{nullptr};
     TimeStretchOptions time_stretch{};
 };
