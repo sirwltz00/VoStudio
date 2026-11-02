@@ -81,7 +81,10 @@ AudioBuffer HybridSynthesisEngine::render(const AudioBuffer& source, const Rende
     PSOLAPitchShifter::process(output, semitone_shift, parameters.pitch_curve);
     if (std::abs(semitone_shift) > 1.0e-9
         || (parameters.pitch_curve != nullptr && !parameters.pitch_curve->points().empty())) {
-        output = FormantProcessor::preserve(pitch_reference, output, 0.65);
+        output = FormantProcessor::preserve(
+    pitch_reference,
+    output,
+    parameters.formant_preservation);
     }
 
     // Keep floating-point headroom intact. The mix/output stage can inspect
