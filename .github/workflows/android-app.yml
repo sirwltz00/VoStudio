@@ -25,6 +25,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # Keep aqtinstall/py7zr on a stable Python instead of the runner's
+      # newest hosted Python release.
+      - name: Set up Python for Qt installer
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12.10'
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
@@ -43,8 +50,12 @@ jobs:
           host: all_os
           target: android
           arch: android_arm64_v8a
-          modules: 'qtdeclarative qtmultimedia'
+          # Qt Declarative is an essential module supplied with the Qt
+          # installation. Request only the optional multimedia add-on.
+          modules: 'qtmultimedia'
           cache: true
+          setup-python: false
+          aqtversion: '==3.3.*'
 
       - name: Configure VoStudio Android app
         run: >-
