@@ -23,12 +23,14 @@ ApplicationWindow {
     }
 
     FileDialog {
-        id: openDialog
-        title: "Select a WAV recording"
-        fileMode: FileDialog.OpenFile
-        nameFilters: ["WAV audio (*.wav)", "All files (*)"]
-        onAccepted: { previewPlayer.stop(); audioController.loadAudio(selectedFile) }
+    id: openDialog
+    title: "Select an audio file"
+    fileMode: FileDialog.OpenFile
+    onAccepted: {
+        previewPlayer.stop()
+        audioController.loadAudio(selectedFile)
     }
+}
 
     FileDialog {
         id: saveDialog
