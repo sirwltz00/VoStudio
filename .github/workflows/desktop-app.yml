@@ -1,0 +1,103 @@
+name: Desktop App Builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'VoStudio.Engine/**'
+      - 'VoStudio.App/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/desktop-app.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: linux
+          target: desktop
+          arch: linux_gcc_64
+          modules: 'qtdeclarative qtmultimedia'
+          cache: true
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVOSTUDIO_BUILD_APP=ON -DVOSTUDIO_BUILD_TESTS=OFF -DVOSTUDIO_BUILD_TOOLS=OFF -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist/VoStudio-Linux"
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+      - name: Deploy Qt runtime and QML modules
+        run: cmake --install build --config Release
+      - name: Package Linux tarball
+        run: tar -czf dist/VoStudio-Linux-x64.tar.gz -C dist VoStudio-Linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VoStudio-Linux-x64
+          path: dist/VoStudio-Linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: 'qtdeclarative qtmultimedia'
+          cache: true
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVOSTUDIO_BUILD_APP=ON -DVOSTUDIO_BUILD_TESTS=OFF -DVOSTUDIO_BUILD_TOOLS=OFF -DCMAKE_INSTALL_PREFIX="$env:GITHUB_WORKSPACE/dist/VoStudio-Windows"
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+      - name: Deploy Qt runtime and QML modules
+        run: cmake --install build --config Release
+      - name: Package Windows zip
+        run: Compress-Archive -Path dist/VoStudio-Windows/* -DestinationPath dist/VoStudio-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VoStudio-Windows-x64
+          path: dist/VoStudio-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6.8.3
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: mac
+          target: desktop
+          arch: clang_64
+          modules: 'qtdeclarative qtmultimedia'
+          cache: true
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVOSTUDIO_BUILD_APP=ON -DVOSTUDIO_BUILD_TESTS=OFF -DVOSTUDIO_BUILD_TOOLS=OFF -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/dist"
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+      - name: Deploy Qt runtime and QML modules
+        run: cmake --install build --config Release
+      - name: Package macOS app
+        run: ditto -c -k --sequesterRsrc --keepParent dist/VoStudio.app dist/VoStudio-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VoStudio-macOS
+          path: dist/VoStudio-macOS.zip
+          if-no-files-found: error
+          retention-days: 30

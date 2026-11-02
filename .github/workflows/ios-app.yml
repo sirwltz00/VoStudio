@@ -1,0 +1,63 @@
+name: iOS App Build (unsigned)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'VoStudio.Engine/**'
+      - 'VoStudio.App/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/ios-app.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ios-device-arm64:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt 6.8.3 for iOS
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: mac
+          target: ios
+          arch: ios
+          modules: 'qtdeclarative qtmultimedia'
+          cache: true
+
+      - name: Configure unsigned iOS app
+        run: >-
+          "$QT_ROOT_DIR/bin/qt-cmake" -G Xcode -S . -B build-ios
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_SYSTEM_NAME=iOS
+          -DCMAKE_OSX_SYSROOT=iphoneos
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DVOSTUDIO_BUILD_APP=ON
+          -DVOSTUDIO_BUILD_TESTS=OFF
+          -DVOSTUDIO_BUILD_TOOLS=OFF
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED=NO
+          -DCMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY=
+
+      - name: Build iOS device app (unsigned)
+        run: cmake --build build-ios --config Release --parallel 2
+
+      - name: Package unsigned iOS app
+        run: |
+          APP_PATH="$(find build-ios -type d -name 'VoStudio.app' -print -quit)"
+          test -n "$APP_PATH"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" dist/VoStudio-iOS-arm64-unsigned.zip
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VoStudio-iOS-arm64-unsigned
+          path: dist/VoStudio-iOS-arm64-unsigned.zip
+          if-no-files-found: error
+          retention-days: 30
